@@ -1,0 +1,22 @@
+# Django Environment
+djangoenv/
+
+# Python cache files
+_pycache_/
+*.py[cod]
+
+# IDE (e.g., PyCharm) settings
+.idea/
+
+
+# Database (assuming db.split3 is a typo, and it's likely db.sqlite3)
+*.sqlite3
+
+# Django specific files and folders
+**/migrations/  # Exclude migrations from apps
+staticfiles/
+*.log
+
+# Other OS and editor files
+.DS_Store
+Thumbs.db
