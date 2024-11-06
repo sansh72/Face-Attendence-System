@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Student Attendance List</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body, html {
             margin: 0;
@@ -13,65 +13,34 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
             color: #343a40;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
         }
         .container {
             padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .table-responsive {
-            margin-top: 20px;
-            flex-grow: 1;
-        }
-        .table thead th {
-            vertical-align: middle;
-            text-align: center;
-            background-color: #007bff;
-            color: white;
-        }
-        .table tbody tr:hover {
-            background-color: #e9ecef;
-        }
-        .table td, .table th {
-            vertical-align: middle;
-            text-align: center;
+            max-width: 1200px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         .heading {
             text-align: center;
-            margin: 40px 0;
+            margin: 20px 0 40px;
+            font-weight: 700;
             color: #007bff;
-        }
-        .footer {
-            margin-top: auto;
-            padding: 10px 0;
-            text-align: left;
-        }
-        .back-icon {
-            padding: 10px;
-            font-size: 1.5em;
-            color: #007bff;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-        .back-icon:hover {
-            color: #0056b3;
-        }
-        .form-inline .form-control {
-            width: auto;
-            flex: 1 1 auto;
         }
         .filter-container {
             display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             justify-content: space-between;
             margin-bottom: 20px;
         }
         .filter-container .input-group {
             flex: 1;
-            margin-right: 10px;
-        }
-        .filter-container .input-group:last-child {
-            margin-right: 0;
+            max-width: 48%;
         }
         .btn-custom {
             background-color: #007bff;
@@ -80,11 +49,60 @@
         .btn-custom:hover {
             background-color: #0056b3;
         }
+        .table-responsive {
+            flex-grow: 1;
+        }
+        .table thead th {
+            background-color: #007bff;
+            color: white;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .table tbody tr:hover {
+            background-color: #e9ecef;
+        }
+        .table td, .table th {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .table td img {
+            border-radius: 50%;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #007bff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .footer i {
+            margin-right: 8px;
+        }
+        /* Responsive styling */
+        @media (max-width: 768px) {
+            .filter-container {
+                flex-direction: column;
+            }
+            .filter-container .input-group {
+                max-width: 100%;
+            }
+            .footer {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <h2 class="heading">Student Attendance Records</h2>
+
+    <!-- Search and Filter Form -->
     <form method="get" class="filter-container">
         <div class="input-group">
             <input type="text" name="search" class="form-control" placeholder="Search for students..." value="{{ search_query }}">
@@ -99,7 +117,7 @@
             </div>
         </div>
     </form>
-    
+
     <!-- Attendance Table -->
     <div class="table-responsive attendance-table">
         <table class="table table-bordered table-hover">
@@ -107,9 +125,10 @@
                 <tr>
                     <th>Student Image</th>
                     <th>Student Name</th>
+                    <th>Subject</th>
                     <th>Attendance Date</th>
-                    <th>Check-in Time</th>
-                    <th>Check-out Time</th>
+                    <th>Time_Slot</th>
+                    <th>Lecture_type</th>
                     <th>Stayed Time</th>
                 </tr>
             </thead>
@@ -119,22 +138,18 @@
                     <tr>
                         <td>
                             {% if data.student.image %}
-                                <img src="{{ data.student.image.url }}" alt="{{ data.student.name }}" style="width: 50px; height: 50px; border-radius: 50%;">
+                                <img src="{{ data.student.image.url }}" alt="{{ data.student.name }}" style="width: 50px; height: 50px;">
                             {% else %}
-                                No Image
+                                <span>No Image</span>
                             {% endif %}
                         </td>
                         <td>{{ data.student.name }}</td>
+                        <td>{{ data.student.subject }}</td>
+
                         <td>{{ attendance.date }}</td>
-                        <td>{{ attendance.check_in_time|date:"h:i:s A" }}</td>
-                        <td>{{ attendance.check_out_time|date:"h:i:s A" }}</td>
-                        <td>
-                            {% if attendance.check_in_time and attendance.check_out_time %}
-                                {{ attendance.calculate_duration }}
-                            {% else %}
-                                Not Checked Out
-                            {% endif %}
-                        </td>
+                        <td>{{ attendance.timeslot }}</td>
+                        <td>{{ attendance.lecture }}</td>
+
                     </tr>
                     {% endfor %}
                 {% endfor %}
@@ -142,10 +157,13 @@
         </table>
     </div>
 
-    <div class="footer">
-        <i class="fas fa-arrow-left back-icon" onclick="location.href='/'"></i> <!-- Font Awesome back icon -->
+    <!-- Back to Home Icon -->
+    <div class="footer" onclick="location.href='{% url 'home' %}'">
+        <i class="fas fa-home"></i> Back to Home
     </div>
 </div>
+
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
