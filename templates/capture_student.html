@@ -12,11 +12,17 @@
             background-color: #f0f2f5;
             font-family: 'Arial', sans-serif;
             color: #343a40;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
 
         .container {
-            margin-top: 50px;
-            max-width: 600px;
+            max-width: 900px;
+            padding: 20px;
         }
 
         .card {
@@ -38,7 +44,6 @@
             border-radius: 1rem;
             border: 5px solid #28a745;
             max-width: 100%;
-            margin-bottom: 20px;
         }
 
         .image-preview {
@@ -96,54 +101,103 @@
         .back-button:hover {
             color: #218838;
         }
+
+        @media (max-width: 600px) {
+            .container {
+                margin-top: 0;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <div class="card shadow">
-            <div class="card-body text-center">
-                <h2 class="card-title">Student Registration</h2>
-                <video id="video" autoplay></video>
-                <form id="registrationForm" method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="name">Name:</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email:</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone_number">Phone Number:</label>
-                        <input type="text" class="form-control" id="phone_number" name="phone_number" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="student_class">Class:</label>
-                        <input type="text" class="form-control" id="student_class" name="student_class" required>
+            <div class="card-body">
+                <h2 class="card-title text-center">Student Registration</h2>
+                <div class="row">
+                    <!-- Left Column for Video -->
+                    <div class="col-md-6 text-center">
+                        <video id="video" autoplay></video>
                     </div>
 
-                    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
-                    <input type="hidden" id="image_data" name="image_data">
-                    <img id="imagePreview" class="image-preview" src="" alt="Captured Image Preview" />
-                    <div class="form-group text-center">
-                        <button type="submit" class="btn btn-success" id="submitBtn">Submit Registration</button>
+                    <!-- Right Column for Form -->
+                    <div class="col-md-6">
+                        <form id="registrationForm" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="name">Student Name:</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="father_name">Father Name:</label>
+                                <input type="text" class="form-control" id="father_name" name="father_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="roll_no">Roll No.:</label>
+                                <input type="text" class="form-control" id="roll_no" name="roll_no" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email:</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone_number">Phone Number:</label>
+                                <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="batch">Select Batch:</label>
+                                <select class="form-control" id="batch" name="batch">
+                                    <option value="">Select Phase</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="phase">Select Phase:</label>
+                                <select class="form-control" id="phase" name="phase">
+                                    <option value="">Select Phase</option>
+                                    <option value="phase1">Phase I</option>
+                                    <option value="phase2">Phase II</option>
+                                    <option value="phase3_part1">Phase III Part I</option>
+                                    <option value="phase3_part2">Phase III Part II</option>
+                                </select>
+                            </div>
+                            <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+                            <input type="hidden" id="image_data" name="image_data">
+                            <img id="imagePreview" class="image-preview" src="" alt="Captured Image Preview" />
+
+                            <div class="form-group text-center">
+                                <button type="submit" class="btn btn-success" id="submitBtn">Submit Registration</button>
+                            </div>
+                            <div class="back-button" onclick="location.href='{% url 'home' %}'">
+                                <i class="fas fa-home"></i> Back to Home
+                            </div>
+                        </form>
+                        <div class="social-icons text-center">
+                            <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        </div>
                     </div>
-                    <div class="back-button" onclick="location.href='{% url 'home' %}'">
-                        <i class="fas fa-home"></i> Back to Home
-                    </div>
-                </form>
-                <div class="social-icons">
-                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        const batchSelect = document.getElementById('batch');
+        const startYear = 2000; // Starting year for the batch options
+        const futureYears = 50; // Number of future years to include
+
+        for (let year = startYear; year <= startYear + futureYears; year++) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            batchSelect.appendChild(option);
+        }
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const imageDataInput = document.getElementById('image_data');

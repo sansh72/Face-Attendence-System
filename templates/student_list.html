@@ -4,98 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student List</title>
-    <!-- Include any necessary CSS -->
+    <!-- Include Bootstrap and Font Awesome -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         /* Global Styles */
         body {
             font-family: 'Roboto', Arial, sans-serif;
-            background-color: #f9f9f9;
+            background-color: #f4f6f8;
             margin: 0;
             padding: 0;
-            position: relative;
-            min-height: 100vh; /* Ensure full viewport height */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         .container {
-            width: 100%;
-            max-width: 800px;
-            margin: 20px auto;
+            max-width: 1200px;
+            margin: 40px auto;
             background-color: #fff;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: box-shadow 0.3s ease;
-            box-sizing: border-box;
-            position: relative; /* Ensure z-index works */
-            z-index: 1; /* Ensure content is above footer */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
         h1 {
             text-align: center;
-            color: #007bff;
+            color: #333;
+            font-weight: bold;
             margin-bottom: 20px;
+            font-size: 2rem;
         }
+        /* Table Styling */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
+            padding: 15px;
             text-align: left;
+            font-size: 0.95rem;
         }
         th {
             background-color: #007bff;
             color: #fff;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
         }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
+        td {
+            background-color: #f9f9f9;
+            color: #555;
+            border: 1px solid #ddd;
         }
-        tr:hover {
-            background-color: #e9ecef;
+        tr:nth-child(even) td {
+            background-color: #f3f5f8;
         }
+        tr:hover td {
+            background-color: #e9f2ff;
+        }
+        /* Actions Styling */
         .actions a {
-            display: inline-block;
-            margin-right: 5px;
-            padding: 8px 16px;
-            text-decoration: none;
             color: #007bff;
             border: 1px solid #007bff;
+            padding: 5px 12px;
+            font-size: 0.85rem;
             border-radius: 5px;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+            margin-right: 5px;
         }
         .actions a:hover {
             background-color: #007bff;
             color: #fff;
         }
-        /* Footer styles */
+        /* Back to Home Icon */
         .footer {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            color: #6c757d;
-            font-size: 24px;
+            text-align: center;
+            padding: 20px 0;
+            color: #007bff;
+            font-size: 1.2rem;
             cursor: pointer;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .footer i {
-            margin-right: 10px;
+            margin-right: 8px;
+        }
+        .footer:hover {
+            color: #0056b3;
         }
 
         /* Responsive Styles */
-        @media only screen and (max-width: 600px) {
+        @media only screen and (max-width: 768px) {
             .container {
-                padding: 15px;
+                padding: 20px;
+                margin: 20px;
             }
-            table {
-                font-size: 14px;
+            h1 {
+                font-size: 1.8rem;
             }
             th, td {
                 padding: 10px;
+                font-size: 0.9rem;
             }
             .actions a {
-                padding: 6px 12px;
+                font-size: 0.8rem;
+                padding: 5px 10px;
             }
         }
     </style>
@@ -106,10 +123,13 @@
         <table>
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>Student Name</th>
+                    <th>Father Name</th>
+                    <th>Roll No.</th>
                     <th>Email</th>
                     <th>Phone Number</th>
-                    <th>Class</th>
+                    <th>Select Batch</th>
+                    <th>Select Phase</th>
                     <th>Authorized</th>
                     <th>Actions</th>
                 </tr>
@@ -117,10 +137,15 @@
             <tbody>
                 {% for student in students %}
                 <tr>
-                    <td>{{ student.name }}</td>
+                    <td>{{ student.studentname }}</td>
+                    <td>{{ student.fathername }}</td>
+                    <td>{{ student.rollno }}</td>
+
                     <td>{{ student.email }}</td>
                     <td>{{ student.phone_number }}</td>
-                    <td>{{ student.student_class }}</td>
+                    <td>{{ student.batch }}</td>
+                    <td>{{ student.phase }}</td>
+
                     <td>{% if student.authorized %} Yes {% else %} No {% endif %}</td>
                     <td class="actions">
                         <a href="{% url 'student-authorize' pk=student.pk %}">View</a>
@@ -129,10 +154,11 @@
                 {% endfor %}
             </tbody>
         </table>
+        <a class="footer" href="{% url 'home' %}">
+            <i class="fas fa-home"></i> Back to Home
+        </a>
     </div>
-    <!-- Back to home icon -->
-    <div class="footer" onclick="location.href='{% url 'home' %}'">
-        <i class="fas fa-home"></i> Back to Home
-    </div>
+    <!-- Back to Home Icon -->
+
 </body>
 </html>
