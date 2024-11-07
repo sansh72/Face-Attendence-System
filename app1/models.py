@@ -3,9 +3,12 @@ from django.utils import timezone
 
 class Student(models.Model):
     name = models.CharField(max_length=255)
+    fname = models.CharField(max_length=255)
     email = models.EmailField(max_length=255)
     phone_number = models.CharField(max_length=15)
-    student_class = models.CharField(max_length=100)
+    rollno = models.CharField(max_length=25, null=False)
+    batch = models.CharField(max_length=25)
+    phase = models.CharField(max_length=25)
     image = models.ImageField(upload_to='students/')
     authorized = models.BooleanField(default=False)
 
