@@ -12,12 +12,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='attendance',
-            name='check_in_time',
+            name='timeslot',
             field=models.DateTimeField(blank=True, null=True),
         ),
-        migrations.AddField(
-            model_name='attendance',
-            name='check_out_time',
-            field=models.DateTimeField(blank=True, null=True),
-        ),
+        
     ]

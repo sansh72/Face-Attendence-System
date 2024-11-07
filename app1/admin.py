@@ -3,8 +3,8 @@ from .models import Student, Attendance,CameraConfiguration
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'email', 'phone_number', 'student_class', 'authorized']
-    list_filter = ['student_class', 'authorized']
+    list_display = ['name','fname', 'email', 'phone_number','rollno','batch', 'phase', 'authorized']
+    list_filter = ['phase', 'authorized']
     search_fields = ['name', 'email']
 
 @admin.register(Attendance)

@@ -83,9 +83,12 @@ def recognize_faces(known_encodings, known_names, test_encodings, threshold=0.6)
 def capture_student(request):
     if request.method == 'POST':
         name = request.POST.get('name')
+        fname = request.POST.get('fname')
+        rollno = request.POST.get('rollno')
         email = request.POST.get('email')
         phone_number = request.POST.get('phone_number')
-        student_class = request.POST.get('student_class')
+        batch = request.POST.get('batch')
+        phase = request.POST.get('phase')
         image_data = request.POST.get('image_data')
 
         # Decode the base64 image data
@@ -95,9 +98,12 @@ def capture_student(request):
 
             student = Student(
                 name=name,
+                fname=fname,
+                rollno=rollno,
                 email=email,
                 phone_number=phone_number,
-                student_class=student_class,
+                batch=batch,
+                phase=phase,
                 image=image_file,
                 authorized=False  # Default to False during registration
             )
