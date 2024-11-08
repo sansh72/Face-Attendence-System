@@ -24,7 +24,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from .models import Student
 from .models import CameraConfiguration
-
+from datetime import datetime
+import requests
 
 # Initialize MTCNN and InceptionResnetV1
 mtcnn = MTCNN(keep_all=True)
@@ -126,6 +127,9 @@ def capture_and_recognize(request):
     camera_windows = []  # List to store window names
     error_messages = []  # List to capture errors from threads
 
+    # Capture subject from frontend form submission
+    subject_name = request.POST.get('subject')  # Assuming subject is passed in a POST request
+
     def process_frame(cam_config, stop_event):
         """Thread function to capture and process frames for each camera."""
         cap = None
@@ -176,21 +180,34 @@ def capture_and_recognize(request):
                                         student = students.first()
 
                                         # Manage attendance based on check-in and check-out logic
-                                        attendance, created = Attendance.objects.get_or_create(student=student, date=datetime.now().date())
+                                        attendance, created = Attendance.objects.get_or_create(
+                                            roll_number=student, date=datetime.now().date()
+                                        )
+
+                                        # Set the student_name field in the Attendance model
+                                        attendance.student_name = student.name
+
+                                        # Set the subject field to the subject passed from frontend
+                                        if subject_name:
+                                            attendance.Subject = subject_name
+
                                         if created:
                                             attendance.mark_checked_in()
                                             success_sound.play()
-                                            cv2.putText(frame, f"{name}, checked in.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                                            cv2.putText(frame, f"{name} checked in.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
                                         else:
                                             if attendance.check_in_time and not attendance.check_out_time:
                                                 if timezone.now() >= attendance.check_in_time + timedelta(seconds=60):
                                                     attendance.mark_checked_out()
                                                     success_sound.play()
-                                                    cv2.putText(frame, f"{name}, checked out.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                                                    cv2.putText(frame, f"{name} checked out.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
                                                 else:
-                                                    cv2.putText(frame, f"{name}, checked in.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                                                    cv2.putText(frame, f"{name} checked in.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
                                             elif attendance.check_in_time and attendance.check_out_time:
-                                                cv2.putText(frame, f"{name}, checked out.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                                                cv2.putText(frame, f"{name} checked out.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+
+                                        # Save the attendance object after updating student_name and subject
+                                        attendance.save()
 
                 # Display frame in separate window for each camera
                 if not window_created:
@@ -250,7 +267,7 @@ def capture_and_recognize(request):
 
     return redirect('student_attendance_list')
 
-#this is for showing Attendance list
+
 def student_attendance_list(request):
     # Get the search query and date filter from the request
     search_query = request.GET.get('search', '')
@@ -268,7 +285,7 @@ def student_attendance_list(request):
 
     for student in students:
         # Get the attendance records for each student, filtering by attendance date if provided
-        attendance_records = Attendance.objects.filter(student=student)
+        attendance_records = Attendance.objects.filter(roll_number=student)
 
         if date_filter:
             # Assuming date_filter is in the format YYYY-MM-DD
@@ -287,6 +304,7 @@ def student_attendance_list(request):
         'date_filter': date_filter       # Pass the date filter to the template
     }
     return render(request, 'student_attendance_list.html', context)
+
 
 
 def home(request):
@@ -453,6 +471,5 @@ def camera_config_delete(request, pk):
 
 def attendance_form(request):
     return render(request, 'attendance_form.html')
-
 
 

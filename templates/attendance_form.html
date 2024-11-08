@@ -113,7 +113,7 @@
         <div class="card shadow">
             <div class="card-body">
                 <h2>Student Registration</h2>
-                <form id="preForm" method="post" enctype="multipart/form-data">
+                <form id="preForm" method="post" enctype="multipart/form-data" action="{% url 'capture_and_recognize' %}">
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-md-6">
@@ -176,16 +176,17 @@
                         </div>
                     </div>
 
+                    <!-- Hidden Canvas for Image Capture -->
                     <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
                     <input type="hidden" id="image_data" name="image_data">
                     <img id="imagePreview" class="image-preview" src="" alt="Captured Image Preview" />
 
+                    <!-- Button to start the attendance process -->
                     <div class="text-center mt-3">
-                        <button type="submit" class="btn btn-success"> <a href="{% url 'capture_and_recognize' %}">Start Attendance</a></button>
+                        <button type="button" class="btn btn-success" onclick="startAttendance()">Start Attendance</button>
                     </div>
 
                     <div class="text-center mt-3">
-
                         <a href="{% url 'home' %}" class="back-button">
                             <i class="fas fa-home"></i> Back to Home
                         </a>
@@ -202,6 +203,7 @@
     </div>
 
     <script>
+        // JavaScript for facial recognition
         const subjectsByPhase = {
             'Phase I': ['Anatomy', 'Physiology', 'Biochemistry', 'Community Medicine', 'Foundation Course', 'ECA'],
             'Phase II': ['Community Medicine', 'Pathology', 'Microbiology', 'Pharmacology', 'Forensic Med & TC', 'Medicine', 'Surgery', 'Obs & Gyn', 'ECA'],
@@ -257,6 +259,48 @@
                 });
             }
         });
+
+        // Function to start the attendance process
+        function startAttendance() {
+            // Start the camera
+            const video = document.createElement('video');
+            video.setAttribute('autoplay', true);
+            video.setAttribute('playsinline', true);
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then((stream) => {
+                    video.srcObject = stream;
+
+                    // Wait for the video to load
+                    video.onloadeddata = function() {
+                        const canvas = document.getElementById('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Capture image from video
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        // Convert canvas image to base64
+                        const image_data = canvas.toDataURL('image/png');
+                        
+                        // Stop the video stream
+                        stream.getTracks().forEach(track => track.stop());
+
+                        // Display the captured image
+                        const imagePreview = document.getElementById('imagePreview');
+                        imagePreview.src = image_data;
+                        imagePreview.style.display = 'block';
+
+                        // Set the hidden field with the image data
+                        document.getElementById('image_data').value = image_data;
+
+                        // Now submit the form to capture_and_recognize view
+                        document.getElementById('preForm').submit();
+                    };
+                })
+                .catch((error) => {
+                    alert('Could not access the camera. Please allow camera access.');
+                });
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>

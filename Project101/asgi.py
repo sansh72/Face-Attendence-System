@@ -1,5 +1,5 @@
 """
-ASGI config for Rec project.
+ASGI config for Project101 project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

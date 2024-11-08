@@ -1,4 +1,7 @@
 from django.db import models
+
+# Create your models here.
+from django.db import models
 from django.utils import timezone
 
 class Student(models.Model):
@@ -6,23 +9,25 @@ class Student(models.Model):
     fname = models.CharField(max_length=255)
     email = models.EmailField(max_length=255)
     phone_number = models.CharField(max_length=15)
-    rollno = models.CharField(max_length=25, null=False)
+    rollno = models.CharField(max_length=25, null=False,primary_key=True)
     batch = models.CharField(max_length=25)
     phase = models.CharField(max_length=25)
     image = models.ImageField(upload_to='students/')
     authorized = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name
+        return str(self.rollno) 
 
 class Attendance(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    date = models.DateField()
+    roll_number = models.ForeignKey(Student, to_field='rollno', on_delete=models.CASCADE)
+    student_name = models.CharField(max_length=100, editable=False)
+    Subject = models.CharField(max_length=100, editable=False)
+    date = models.DateField(default=timezone.now)
     check_in_time = models.DateTimeField(null=True, blank=True)
     check_out_time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.student.name} - {self.date}"
+        return f"{self.roll_number} - {self.student_name} - {self.date}"   
 
     def mark_checked_in(self):
         self.check_in_time = timezone.now()
