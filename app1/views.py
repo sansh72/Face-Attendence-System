@@ -449,3 +449,10 @@ def camera_config_delete(request, pk):
 
     # Render the delete confirmation template with the configuration data
     return render(request, 'camera_config_delete.html', {'config': config})
+
+
+def attendance_form(request):
+    return render(request, 'attendance_form.html')
+
+
+
