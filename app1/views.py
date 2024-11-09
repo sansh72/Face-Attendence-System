@@ -49,6 +49,7 @@ def detect_and_encode(image):
             return faces
     return []
 
+
 # Function to encode uploaded images
 def encode_uploaded_images():
     known_face_encodings = []
@@ -212,6 +213,9 @@ def capture_and_recognize(request):
                                         
                                         # Save the attendance object
                                         attendance.save()
+
+                                        # Send attendance data to manual project API
+                                        send_attendance_to_manual_project(student.rollno, subject_name, student.phase)
 
                 # Display frame in separate window for each camera
                 if not window_created:
@@ -477,3 +481,38 @@ def attendance_form(request):
     return render(request, 'attendance_form.html')
 
 
+
+
+
+import requests
+from django.utils import timezone
+
+# Function to send attendance data to manual project API
+def send_attendance_to_manual_project(roll_number, subject, phase):
+    try:
+        # Define the URL for the manual project API endpoint
+        manual_project_api_url = 'http://127.0.0.1:8000/facial/'
+
+        # Prepare the data payload for the POST request
+        data = {
+            'roll_no': roll_number,
+            'subject_name': subject,
+            'phase': phase,
+            'date': timezone.now().date(),  # Sending today's date
+        }
+
+        # Log the data being sent
+        print(f"Sending data to manual project API: {data}")
+
+        # Send POST request to manual project API
+        response = requests.post(manual_project_api_url, data=data)
+
+        # Log the response status and content
+        if response.status_code == 200:
+            print(f"Attendance for {roll_number} sent to manual project successfully.")
+            print(f"Response from manual project API: {response.json()}")
+        else:
+            print(f"Failed to send attendance for {roll_number}. API response: {response.status_code}")
+            print(f"Error details: {response.text}")
+    except Exception as e:
+        print(f"Error sending attendance data to manual project API: {e}")
