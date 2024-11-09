@@ -81,46 +81,67 @@ def recognize_faces(known_encodings, known_names, test_encodings, threshold=0.6)
             recognized_names.append('Not Recognized')
     return recognized_names
 
-# View for capturing student information and image
+def get_student_data(roll_no, phase):
+    """Fetch student data from appropriate API based on phase"""
+    phase_to_url = {
+        'Phase1': 'http://localhost:8000/students1/',
+        'Phase2': 'http://localhost:8000/students2/',
+        'Phase3_P1': 'http://localhost:8000/students3/',
+        'Phase3_P2': 'http://localhost:8000/students4/'
+    }
+    
+    try:
+        response = requests.get(phase_to_url[phase])
+        if response.status_code == 200:
+            students = response.json()
+            # Find student with matching roll number
+            for student in students:
+                if str(student['roll_no']) == str(roll_no):
+                    return student
+    except requests.RequestException as e:
+        print(f"Error fetching student data: {e}")
+    return None
+
 def capture_student(request):
     if request.method == 'POST':
-        name = request.POST.get('name')
-        fname = request.POST.get('fname')
         rollno = request.POST.get('rollno')
-        email = request.POST.get('email')
-        phone_number = request.POST.get('phone_number')
-        batch = request.POST.get('batch')
         phase = request.POST.get('phase')
+        batch = request.POST.get('batch')
         image_data = request.POST.get('image_data')
+        
+        # Fetch student data from API
+        student_data = get_student_data(rollno, phase)
+        print(f"{student_data}")
+        if not student_data:
+            # Handle case where student is not found
+            return render(request, 'capture_student.html', {
+                'error': 'Student not found in the database'
+            })
 
         # Decode the base64 image data
         if image_data:
             header, encoded = image_data.split(',', 1)
-            image_file = ContentFile(base64.b64decode(encoded), name=f"{name}.jpg")
-
+            image_file = ContentFile(base64.b64decode(encoded), name=f"{rollno}.jpg")
+            
             student = Student(
-                name=name,
-                fname=fname,
+                name=student_data['name'],
+                fname=student_data['fathers_name'],
                 rollno=rollno,
-                email=email,
-                phone_number=phone_number,
+                email=student_data['email'],
+                phone_number=student_data['student_mobile'],
                 batch=batch,
                 phase=phase,
                 image=image_file,
-                authorized=False  # Default to False during registration
+                authorized=False
             )
             student.save()
 
-            return redirect('selfie_success')  # Redirect to a success page
+            return redirect('selfie_success')
 
     return render(request, 'capture_student.html')
 
-
-# Success view after capturing student information and image
 def selfie_success(request):
     return render(request, 'selfie_success.html')
-
-
 # This views for capturing studen faces and recognize
 def capture_and_recognize(request):
     stop_events = []  # List to store stop events for each thread

@@ -101,6 +101,14 @@
         .back-button:hover {
             color: #218838;
         }
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
 
         @media (max-width: 600px) {
             .container {
@@ -129,35 +137,15 @@
                     <div class="col-md-6">
                         <form id="registrationForm" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
-                            <div class="form-group">
-                                <label for="name">Student Name:</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
+                            {% if error %}
+                            <div class="error-message">
+                                {{ error }}
                             </div>
-                            <div class="form-group">
-                                <label for="fname">Father Name:</label>
-                                <input type="text" class="form-control" id="fname" name="fname" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="rollno">Roll No.:</label>
-                                <input type="text" class="form-control" id="rollno" name="rollno" required>
-                            </div>
+                            {% endif %}
                             
-                            <div class="form-group">
-                                <label for="email">Email:</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="phone_number">Phone Number:</label>
-                                <input type="text" class="form-control" id="phone_number" name="phone_number" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="batch">Select Batch:</label>
-                                <select class="form-control" id="batch" name="batch" required>
-                                    <option value="">Select Batch</option>
-                                </select>
-                            </div>
                             
-                            <div class="form-group">
+                            
+                            <div class="form-group p-2 m-2">
                                 <label for="phase">Select Phase:</label>
                                 <select class="form-control" id="phase" name="phase" required>
                                     <option value="">Select Phase</option>
@@ -167,21 +155,30 @@
                                     <option value="Phase3_P2">Phase III Part II</option>
                                 </select>
                             </div>
+
+                            <div class="form-group p-2 m-2">
+                                <label for="batch">Select Batch:</label>
+                                <select class="form-control" id="batch" name="batch" required>
+                                    <option value="">Select Batch</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group p-2 m-2">
+                                <label for="rollno">Roll No.:</label>
+                                <input type="text" class="form-control" id="rollno" name="rollno" required>
+                            </div>
+
                             <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
                             <input type="hidden" id="image_data" name="image_data">
                             <img id="imagePreview" class="image-preview" src="" alt="Captured Image Preview" />
 
-                            <div class="form-group text-center">
+                            <div class="form-group text-center mt-4">
                                 <button type="submit" class="btn btn-success" id="submitBtn">Submit Registration</button>
                             </div>
-                            <div class="back-button" onclick="location.href='{% url 'home' %}'">
-                                <i class="fas fa-home"></i> Back to Home
-                            </div>
                         </form>
-                        <div class="social-icons text-center">
-                            <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        
+                        <div class="back-button" onclick="location.href='{% url 'home' %}'">
+                            <i class="fas fa-home"></i> Back to Home
                         </div>
                     </div>
                 </div>
@@ -236,5 +233,4 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
-
 </html>
