@@ -24,7 +24,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from .models import Student
 from .models import CameraConfiguration
-
+from datetime import datetime
+import requests
 
 # Initialize MTCNN and InceptionResnetV1
 mtcnn = MTCNN(keep_all=True)
@@ -47,6 +48,7 @@ def detect_and_encode(image):
                 faces.append(encoding)
             return faces
     return []
+
 
 # Function to encode uploaded images
 def encode_uploaded_images():
@@ -126,6 +128,9 @@ def capture_and_recognize(request):
     camera_windows = []  # List to store window names
     error_messages = []  # List to capture errors from threads
 
+    # Capture subject from frontend form submission
+    subject_name = request.POST.get('subject')  # Assuming subject is passed in a POST request
+
     def process_frame(cam_config, stop_event):
         """Thread function to capture and process frames for each camera."""
         cap = None
@@ -175,22 +180,42 @@ def capture_and_recognize(request):
                                     if students.exists():
                                         student = students.first()
 
-                                        # Manage attendance based on check-in and check-out logic
-                                        attendance, created = Attendance.objects.get_or_create(student=student, date=datetime.now().date())
-                                        if created:
-                                            attendance.mark_checked_in()
-                                            success_sound.play()
-                                            cv2.putText(frame, f"{name}, checked in.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-                                        else:
+                                        # Retrieve today's attendance record or create a new one if it doesn't exist
+                                        today = timezone.now().date()
+                                        try:
+                                            attendance = Attendance.objects.get(roll_number=student, date=today)
+                                        except Attendance.DoesNotExist:
+                                            attendance = None
+
+                                        if attendance:
+                                            # If attendance exists, manage check-in and check-out
                                             if attendance.check_in_time and not attendance.check_out_time:
+                                                # Mark check-out only if check-in has occurred
                                                 if timezone.now() >= attendance.check_in_time + timedelta(seconds=60):
                                                     attendance.mark_checked_out()
                                                     success_sound.play()
-                                                    cv2.putText(frame, f"{name}, checked out.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                                                    cv2.putText(frame, f"{name} checked out.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
                                                 else:
-                                                    cv2.putText(frame, f"{name}, checked in.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-                                            elif attendance.check_in_time and attendance.check_out_time:
-                                                cv2.putText(frame, f"{name}, checked out.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                                                    cv2.putText(frame, f"{name} checked in.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                                            elif not attendance.check_in_time:
+                                                # Mark check-in if not checked in already
+                                                attendance.student_name = student.name
+                                                attendance.Subject = subject_name if subject_name else 'Unknown'
+                                                attendance.mark_checked_in()
+                                                success_sound.play()
+                                                cv2.putText(frame, f"{name} checked in.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                                        else:
+                                            # If no attendance record exists, create a new one
+                                            attendance = Attendance(roll_number=student, student_name=student.name, Subject=subject_name if subject_name else 'Unknown', date=today)
+                                            attendance.mark_checked_in()
+                                            success_sound.play()
+                                            cv2.putText(frame, f"{name} checked in.", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                                        
+                                        # Save the attendance object
+                                        attendance.save()
+
+                                        # Send attendance data to manual project API
+                                        send_attendance_to_manual_project(student.rollno, subject_name, student.phase)
 
                 # Display frame in separate window for each camera
                 if not window_created:
@@ -250,7 +275,7 @@ def capture_and_recognize(request):
 
     return redirect('student_attendance_list')
 
-#this is for showing Attendance list
+
 def student_attendance_list(request):
     # Get the search query and date filter from the request
     search_query = request.GET.get('search', '')
@@ -268,7 +293,7 @@ def student_attendance_list(request):
 
     for student in students:
         # Get the attendance records for each student, filtering by attendance date if provided
-        attendance_records = Attendance.objects.filter(student=student)
+        attendance_records = Attendance.objects.filter(roll_number=student)
 
         if date_filter:
             # Assuming date_filter is in the format YYYY-MM-DD
@@ -287,6 +312,7 @@ def student_attendance_list(request):
         'date_filter': date_filter       # Pass the date filter to the template
     }
     return render(request, 'student_attendance_list.html', context)
+
 
 
 def home(request):
@@ -449,3 +475,44 @@ def camera_config_delete(request, pk):
 
     # Render the delete confirmation template with the configuration data
     return render(request, 'camera_config_delete.html', {'config': config})
+
+
+def attendance_form(request):
+    return render(request, 'attendance_form.html')
+
+
+
+
+
+import requests
+from django.utils import timezone
+
+# Function to send attendance data to manual project API
+def send_attendance_to_manual_project(roll_number, subject, phase):
+    try:
+        # Define the URL for the manual project API endpoint
+        manual_project_api_url = 'http://127.0.0.1:8000/facial/'
+
+        # Prepare the data payload for the POST request
+        data = {
+            'roll_no': roll_number,
+            'subject_name': subject,
+            'phase': phase,
+            'date': timezone.now().date(),  # Sending today's date
+        }
+
+        # Log the data being sent
+        print(f"Sending data to manual project API: {data}")
+
+        # Send POST request to manual project API
+        response = requests.post(manual_project_api_url, data=data)
+
+        # Log the response status and content
+        if response.status_code == 200:
+            print(f"Attendance for {roll_number} sent to manual project successfully.")
+            print(f"Response from manual project API: {response.json()}")
+        else:
+            print(f"Failed to send attendance for {roll_number}. API response: {response.status_code}")
+            print(f"Error details: {response.text}")
+    except Exception as e:
+        print(f"Error sending attendance data to manual project API: {e}")

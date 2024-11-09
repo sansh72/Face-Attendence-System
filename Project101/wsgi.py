@@ -1,5 +1,5 @@
 """
-WSGI config for Rec project.
+WSGI config for Project101 project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
